@@ -51,10 +51,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     protected void onButtonClick(View v){
-        Toast.makeText(this, "Clicked", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "Clicked", Toast.LENGTH_SHORT).show();
         byte[] key = StringToHex( "0123456789ABCDEF0123456789ABCDE0");
         byte[] enc = encrypt(key, StringToHex( "000000000000000102"));
-
         byte [ ] dec = decrypt (key, enc);
         String s = new String(Hex.encodeHex(dec)).toUpperCase();
         Toast.makeText(this, s, Toast.LENGTH_SHORT). show();
@@ -73,6 +72,8 @@ public class MainActivity extends AppCompatActivity {
         }
         return new byte[0];
     }
+
+
     public native String stringFromJNI();
     public static native int initRng();
     public static native byte[] randomBytes(int no);
