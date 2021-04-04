@@ -10,11 +10,16 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.io.IOUtils;
 
 import android.view.View;
 import android.widget.Button;
@@ -39,21 +44,26 @@ public class MainActivity extends AppCompatActivity {
       // TextView tv = findViewById(R.id.sample_text);
      // tv.setText(stringFromJNI());
      //   byte[] rnd = randomBytes(10);
-
+        //2
         Button btn = findViewById(R.id.btnClickMe);
        btn.setOnClickListener((View v) -> { onButtonClick(v);});
-
+       //3
+        Button btnHttp = findViewById(R.id.btnHttp);
+        btnHttp.setOnClickListener((View v) -> {
+            onButtonHttpClick(v);
+        });
 
         int res = initRng();
         Log.i("fclient", "Init Rng = " + res);
         byte[] v = randomBytes(10);
 
     }
-
+    //2
     protected void onButtonClick(View v){
-        //Toast.makeText(this, "Clicked", Toast.LENGTH_SHORT).show();
+       // Toast.makeText(this, "Clicked", Toast.LENGTH_SHORT).show();
         byte[] key = StringToHex( "0123456789ABCDEF0123456789ABCDE0");
         byte[] enc = encrypt(key, StringToHex( "000000000000000102"));
+
         byte [ ] dec = decrypt (key, enc);
         String s = new String(Hex.encodeHex(dec)).toUpperCase();
         Toast.makeText(this, s, Toast.LENGTH_SHORT). show();
@@ -61,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
        // startActivity(it);
         startActivityForResult(it, 0);
             }
-
+     //2
     public static byte[] StringToHex(String s) {
         byte[] hex;
         try {
@@ -72,7 +82,37 @@ public class MainActivity extends AppCompatActivity {
         }
         return new byte[0];
     }
-
+    //3
+    protected void onButtonHttpClick(View v){TestHttpClient();}
+    //3
+    protected void TestHttpClient() {
+        new Thread(() -> {
+            try {
+               //  HttpURLConnection uc = (HttpURLConnection) (new URL("https://www.google.ru").openConnection());
+                HttpURLConnection uc = (HttpURLConnection) (new URL("http://10.0.2.2:8081/api/v1/title").openConnection());
+                InputStream inputStream = uc.getInputStream();
+                String html = IOUtils.toString(inputStream);
+                String title = getPageTitle(html);
+                runOnUiThread(() -> {
+                    Toast.makeText(this, title, Toast.LENGTH_SHORT).show();
+                });
+            } catch (Exception ex) {
+                Log.e("fapptag", "Http client fails", ex);
+            }
+        }).start();
+    }
+    //3
+    protected String getPageTitle(String html) {
+        Pattern pattern = Pattern.compile("<title>(.+?)</title>", Pattern.DOTALL);
+        Matcher matcher = pattern.matcher(html);
+        String p;
+        if (matcher.find()) {
+            p = matcher.group(1);
+        } else {
+            p = "Not Found";
+        }
+        return p;
+    }
 
     public native String stringFromJNI();
     public static native int initRng();
